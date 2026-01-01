@@ -20,7 +20,7 @@ tubes-pcd/
 │   ├── requirements.txt
 │   └── processing/
 │       ├── __init__.py           # Image processing & ML
-│       └── wood_classifier_rf_v1.pkl  # Trained model
+│       └── wood_classifier_rf.pkl  # Trained model
 │
 └── frontend/                     # Vue 3 + Tailwind CSS
     └── src/
@@ -30,7 +30,23 @@ tubes-pcd/
 
 ## Cara Menjalankan
 
-### 1. Backend
+### Quick Start (Recommended) 🚀
+
+**Double-click `start.bat`** di folder project, atau jalankan dari terminal:
+
+```powershell
+.\start.bat
+```
+
+Script akan otomatis:
+
+1. Menjalankan Backend (Flask)
+2. Menjalankan Frontend (Vite)
+3. Membuka browser ke `http://localhost:5173`
+
+### Manual Setup
+
+**Backend:**
 
 ```bash
 cd backend
@@ -38,9 +54,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Server berjalan di `http://localhost:5000`
-
-### 2. Frontend
+**Frontend:**
 
 ```bash
 cd frontend
@@ -48,14 +62,12 @@ npm install
 npm run dev
 ```
 
-Buka `http://localhost:5173`
+### Re-train Model (Opsional)
 
-### 3. Model ML (Opsional - jika ingin re-train)
-
-1. Buka `ML_Classification_Colab.py` di Google Colab
+1. Buka `ml.py` di Google Colab
 2. Sesuaikan path dataset
 3. Jalankan training
-4. Export model ke `backend/processing/wood_classifier_rf_v1.pkl`
+4. Export model ke `backend/processing/wood_classifier_rf.pkl`
 
 ## Pipeline Preprocessing
 

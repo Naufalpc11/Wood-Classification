@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import { AlertCircle, LucideWand2, RotateCcw, X } from "lucide-vue-next";
+import { AlertCircle, LucideWand2, X } from "lucide-vue-next";
 import AppHeader from "../components/AppHeader.vue";
 import AppFooter from "../components/AppFooter.vue";
 import Card from "../components/ui/Card.vue";
@@ -15,7 +15,6 @@ const selectedFile = ref(null);
 const uploadedImageId = ref(null);
 const isProcessing = ref(false);
 const processingResults = ref(null);
-const imageDimensions = ref({ width: 800, height: 600 });
 const errorMessage = ref("");
 
 function handleFileSelected(file) {
@@ -39,7 +38,6 @@ async function processImage() {
     try {
         const uploadResult = await uploadImage(selectedFile.value);
         uploadedImageId.value = uploadResult.image_id;
-        imageDimensions.value = uploadResult.dimensions;
 
         const results = await apiProcessImage(uploadResult.image_id);
         processingResults.value = results;
@@ -65,39 +63,36 @@ function resetAll() {
         <AppHeader />
 
         <main class="flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-8">
-            <section class="flex w-full justify-center">
+            <!-- Upload Section -->
+            <section v-if="!processingResults" class="flex w-full justify-center">
                 <Card class="flex w-full max-w-2xl flex-col gap-6">
                     <div class="flex flex-col items-center gap-2">
                         <h2 class="text-foreground text-4xl font-semibold tracking-tighter">Upload Gambar Kayu</h2>
                         <p class="text-muted-foreground text-center text-base">Upload gambar kayu untuk mendeteksi wood knots menggunakan teknik pengolahan citra digital.</p>
                     </div>
 
-                    <ImageUploader ref="uploaderRef" @file-selected="handleFileSelected" @file-cleared="handleFileCleared" />
+                    <ImageUploader ref="uploaderRef" :disabled="isProcessing" @file-selected="handleFileSelected" @file-cleared="handleFileCleared" />
 
-                    <div class="flex items-center justify-center gap-5">
+                    <div class="flex justify-center">
                         <Button variant="primary" :loading="isProcessing" :disabled="!selectedFile" @click="processImage">
                             <LucideWand2 v-if="!isProcessing" class="h-5 w-5" />
                             {{ isProcessing ? "Processing..." : "Process Image" }}
-                        </Button>
-
-                        <Button v-if="processingResults" variant="secondary" @click="resetAll">
-                            <RotateCcw class="h-5 w-5" />
-                            Reset
                         </Button>
                     </div>
                 </Card>
             </section>
 
-            <div v-if="processingResults" class="flex w-full flex-col gap-12 px-4 py-8">
+            <!-- Results Section -->
+            <div v-if="processingResults" class="flex w-full flex-col gap-12">
+                <section class="w-full">
+                    <ResultDisplay :classification="processingResults.classification" :features="processingResults.features" :results="processingResults.detection_results" @reset="resetAll" />
+                </section>
                 <section class="border-t-foreground/10 w-full border-t py-8">
                     <ProcessingSteps :steps="processingResults.pipeline_steps" />
                 </section>
-
-                <section class="border-t-foreground/10 w-full border-t py-8">
-                    <ResultDisplay :classification="processingResults.classification" :features="processingResults.features" :results="processingResults.detection_results" />
-                </section>
             </div>
 
+            <!-- Error Toast -->
             <div v-if="errorMessage" class="bg-destructive fixed right-6 bottom-6 flex items-center gap-3 rounded-xl px-6 py-4 text-white shadow-lg">
                 <AlertCircle class="h-6 w-6" />
                 <span>{{ errorMessage }}</span>

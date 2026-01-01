@@ -1,21 +1,15 @@
 <script setup>
 import { computed } from "vue";
-import { CheckCircle, XCircle, Info, Cpu } from "lucide-vue-next";
+import { CheckCircle, XCircle, Info, Cpu, RotateCcw } from "lucide-vue-next";
+import Button from "./ui/Button.vue";
 
 const props = defineProps({
-    classification: {
-        type: Object,
-        default: null,
-    },
-    features: {
-        type: Object,
-        default: null,
-    },
-    results: {
-        type: Object,
-        default: null,
-    },
+    classification: { type: Object, default: null },
+    features: { type: Object, default: null },
+    results: { type: Object, default: null },
 });
+
+const emit = defineEmits(["reset"]);
 
 const isDefect = computed(() => props.classification?.prediction === 1);
 const confidencePercent = computed(() => (props.classification?.confidence ? Math.round(props.classification.confidence * 100) : 0));
@@ -24,11 +18,17 @@ const confidencePercent = computed(() => (props.classification?.confidence ? Mat
 <template>
     <div class="flex flex-col gap-6">
         <!-- Header -->
-        <div class="flex items-center gap-3">
-            <div class="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-xl">
-                <Cpu class="text-primary h-5 w-5" />
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-xl">
+                    <Cpu class="text-primary h-5 w-5" />
+                </div>
+                <h2 class="text-foreground text-2xl font-bold tracking-tight">Hasil Klasifikasi</h2>
             </div>
-            <h2 class="text-foreground text-2xl font-bold tracking-tight">Hasil Klasifikasi</h2>
+            <Button v-if="classification" variant="secondary" @click="emit('reset')">
+                <RotateCcw class="h-4 w-4" />
+                Upload Ulang
+            </Button>
         </div>
 
         <!-- Empty State -->
@@ -67,18 +67,18 @@ const confidencePercent = computed(() => (props.classification?.confidence ? Mat
                             <span class="font-semibold" :class="isDefect ? 'text-red-600' : 'text-green-600'"> {{ confidencePercent }}% </span>
                         </div>
                         <div class="h-3 w-full overflow-hidden rounded-full bg-gray-200">
-                            <div class="h-full rounded-full transition-all duration-500" :class="isDefect ? 'bg-red-500' : 'bg-green-500'" :style="{ width: `${confidencePercent}%` }"></div>
+                            <div class="h-full rounded-full transition-all duration-500" :class="isDefect ? 'bg-red-500' : 'bg-green-500'" :style="{ width: `${confidencePercent}%` }" />
                         </div>
                     </div>
                 </div>
 
                 <!-- Model Info -->
-                <div class="border-t p-4">
-                    <div class="flex items-center justify-between text-sm">
+                <div class="border-t p-4 text-sm">
+                    <div class="flex items-center justify-between">
                         <span class="text-muted-foreground">Model</span>
                         <span class="font-medium">{{ classification.model_info?.name || "Random Forest" }}</span>
                     </div>
-                    <div v-if="classification.model_info?.accuracy" class="mt-1 flex items-center justify-between text-sm">
+                    <div v-if="classification.model_info?.accuracy" class="mt-1 flex items-center justify-between">
                         <span class="text-muted-foreground">Training Accuracy</span>
                         <span class="font-medium">{{ Math.round(classification.model_info.accuracy * 100) }}%</span>
                     </div>
@@ -89,24 +89,22 @@ const confidencePercent = computed(() => (props.classification?.confidence ? Mat
             <div class="bg-card rounded-2xl border p-6 shadow-sm">
                 <h3 class="text-foreground mb-4 font-semibold">Fitur yang Diekstrak</h3>
 
-                <div v-if="features?.shape" class="space-y-4">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="rounded-lg bg-gray-50 p-4 text-center">
-                            <p class="text-foreground text-2xl font-bold">{{ features.shape.total_knots }}</p>
-                            <p class="text-muted-foreground text-xs">Jumlah Knots</p>
-                        </div>
-                        <div class="rounded-lg bg-gray-50 p-4 text-center">
-                            <p class="text-foreground text-2xl font-bold">{{ features.shape.total_area.toLocaleString() }}</p>
-                            <p class="text-muted-foreground text-xs">Total Area (px²)</p>
-                        </div>
-                        <div class="rounded-lg bg-gray-50 p-4 text-center">
-                            <p class="text-foreground text-2xl font-bold">{{ features.shape.avg_circularity }}</p>
-                            <p class="text-muted-foreground text-xs">Avg Circularity</p>
-                        </div>
-                        <div class="rounded-lg bg-gray-50 p-4 text-center">
-                            <p class="text-foreground text-2xl font-bold">{{ features.shape.avg_aspect_ratio }}</p>
-                            <p class="text-muted-foreground text-xs">Avg Aspect Ratio</p>
-                        </div>
+                <div v-if="features?.shape" class="grid grid-cols-2 gap-3">
+                    <div class="rounded-lg bg-gray-50 p-4 text-center">
+                        <p class="text-foreground text-2xl font-bold">{{ features.shape.total_knots }}</p>
+                        <p class="text-muted-foreground text-xs">Jumlah Knots</p>
+                    </div>
+                    <div class="rounded-lg bg-gray-50 p-4 text-center">
+                        <p class="text-foreground text-2xl font-bold">{{ features.shape.total_area.toLocaleString() }}</p>
+                        <p class="text-muted-foreground text-xs">Total Area (px²)</p>
+                    </div>
+                    <div class="rounded-lg bg-gray-50 p-4 text-center">
+                        <p class="text-foreground text-2xl font-bold">{{ features.shape.avg_circularity }}</p>
+                        <p class="text-muted-foreground text-xs">Avg Circularity</p>
+                    </div>
+                    <div class="rounded-lg bg-gray-50 p-4 text-center">
+                        <p class="text-foreground text-2xl font-bold">{{ features.shape.avg_aspect_ratio }}</p>
+                        <p class="text-muted-foreground text-xs">Avg Aspect Ratio</p>
                     </div>
                 </div>
 

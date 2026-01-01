@@ -19,6 +19,39 @@ import base64
 import os
 
 
+# =============================================================================
+# KONFIGURASI PARAMETER PCD
+# Ubah nilai di sini untuk tuning pipeline preprocessing
+# =============================================================================
+
+CONFIG = {
+    # Image Resizing
+    "resize_max_dim": 512,           # Dimensi maksimal gambar (px)
+    
+    # CLAHE Enhancement
+    "clahe_clip_limit": 2.0,         # Clip limit untuk CLAHE
+    "clahe_tile_grid": (8, 8),       # Ukuran grid tile CLAHE
+    
+    # Gaussian Blur
+    "blur_kernel_size": 5,           # Ukuran kernel gaussian blur (harus ganjil)
+    
+    # Binary Thresholding
+    "threshold_value": 86,           # Nilai threshold untuk binarisasi
+    
+    # Morphology Opening
+    "morph_kernel_size": 4,          # Ukuran kernel morfologi
+    
+    # Feature Extraction
+    "min_contour_area": 200,         # Area minimum kontour untuk dideteksi (px²)
+    
+    # Auto Crop (untuk dataset lama dengan border hitam)
+    "auto_crop_black_thresh": 50,    # Threshold untuk deteksi area gelap
+}
+
+# =============================================================================
+
+
+
 def image_to_base64(image, ext='jpg'):
     """Convert OpenCV image to base64 string"""
     if len(image.shape) == 2:  # Grayscale
@@ -28,17 +61,10 @@ def image_to_base64(image, ext='jpg'):
     return base64.b64encode(buffer).decode('utf-8')
 
 
-def resize_keep_aspect(img, max_dim=512):
-    """
-    Resize gambar dengan mempertahankan rasio aspek.
-    
-    Args:
-        img: Input image (BGR)
-        max_dim: Dimensi maksimal (default 512)
-    
-    Returns:
-        Resized image
-    """
+def resize_keep_aspect(img, max_dim=None):
+    """Resize gambar dengan mempertahankan rasio aspek."""
+    if max_dim is None:
+        max_dim = CONFIG["resize_max_dim"]
     h, w = img.shape[:2]
     scale = max_dim / max(h, w)
     new_w = int(w * scale)
@@ -46,18 +72,10 @@ def resize_keep_aspect(img, max_dim=512):
     return cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
 
-def auto_crop_sides(img_gray, img_rgb, black_thresh=50):
-    """
-    Crop otomatis area tepi gelap pada gambar.
-    
-    Args:
-        img_gray: Grayscale image
-        img_rgb: RGB/BGR image
-        black_thresh: Threshold untuk mendeteksi area gelap
-    
-    Returns:
-        Tuple (cropped_gray, cropped_rgb, (left, right))
-    """
+def auto_crop_sides(img_gray, img_rgb, black_thresh=None):
+    """Crop otomatis area tepi gelap pada gambar."""
+    if black_thresh is None:
+        black_thresh = CONFIG["auto_crop_black_thresh"]
     col_mean = np.mean(img_gray, axis=0)
     cols = np.where(col_mean > black_thresh)[0]
     
@@ -71,77 +89,44 @@ def auto_crop_sides(img_gray, img_rgb, black_thresh=50):
     return img_gray_crop, img_rgb_crop, (left, right)
 
 
-def apply_clahe(img_gray, clip_limit=2.0, tile_grid_size=(8, 8)):
-    """
-    Aplikasikan CLAHE (Contrast Limited Adaptive Histogram Equalization).
-    
-    Args:
-        img_gray: Grayscale image
-        clip_limit: Clip limit untuk CLAHE
-        tile_grid_size: Ukuran grid tile
-    
-    Returns:
-        Enhanced image
-    """
+def apply_clahe(img_gray, clip_limit=None, tile_grid_size=None):
+    """Aplikasikan CLAHE (Contrast Limited Adaptive Histogram Equalization)."""
+    if clip_limit is None:
+        clip_limit = CONFIG["clahe_clip_limit"]
+    if tile_grid_size is None:
+        tile_grid_size = CONFIG["clahe_tile_grid"]
     clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=tile_grid_size)
     return clahe.apply(img_gray)
 
 
-def apply_gaussian_blur(img, kernel_size=5):
-    """
-    Aplikasikan Gaussian blur untuk mengurangi noise.
-    
-    Args:
-        img: Input image
-        kernel_size: Ukuran kernel (harus ganjil)
-    
-    Returns:
-        Blurred image
-    """
+def apply_gaussian_blur(img, kernel_size=None):
+    """Aplikasikan Gaussian blur untuk mengurangi noise."""
+    if kernel_size is None:
+        kernel_size = CONFIG["blur_kernel_size"]
     return cv2.GaussianBlur(img, (kernel_size, kernel_size), 0)
 
 
-def apply_threshold(img, thresh_value=86):
-    """
-    Aplikasikan binary thresholding inverse.
-    
-    Args:
-        img: Input grayscale image
-        thresh_value: Nilai threshold
-    
-    Returns:
-        Binary image
-    """
+
+def apply_threshold(img, thresh_value=None):
+    """Aplikasikan binary thresholding inverse."""
+    if thresh_value is None:
+        thresh_value = CONFIG["threshold_value"]
     _, binary = cv2.threshold(img, thresh_value, 255, cv2.THRESH_BINARY_INV)
     return binary
 
 
-def apply_morphology(binary_img, kernel_size=4):
-    """
-    Aplikasikan operasi morfologi opening untuk menghilangkan noise.
-    
-    Args:
-        binary_img: Binary image
-        kernel_size: Ukuran kernel morfologi
-    
-    Returns:
-        Cleaned binary image
-    """
+def apply_morphology(binary_img, kernel_size=None):
+    """Aplikasikan operasi morfologi opening untuk menghilangkan noise."""
+    if kernel_size is None:
+        kernel_size = CONFIG["morph_kernel_size"]
     kernel = np.ones((kernel_size, kernel_size), np.uint8)
     return cv2.morphologyEx(binary_img, cv2.MORPH_OPEN, kernel)
 
 
-def extract_shape_features(binary_image, min_area=200):
-    """
-    Ekstraksi fitur geometris dari binary image.
-    
-    Args:
-        binary_image: Binary image hasil segmentasi
-        min_area: Area minimum untuk dideteksi
-    
-    Returns:
-        Tuple (features_list, valid_contours)
-    """
+def extract_shape_features(binary_image, min_area=None):
+    """Ekstraksi fitur geometris dari binary image."""
+    if min_area is None:
+        min_area = CONFIG["min_contour_area"]
     contours, _ = cv2.findContours(
         binary_image,
         cv2.RETR_EXTERNAL,
@@ -373,7 +358,7 @@ def process_sample_image():
 # =============================================================================
 
 # Path ke model yang sudah disimpan
-MODEL_PATH = os.path.join(os.path.dirname(__file__), 'wood_classifier_rf_v1.pkl')
+MODEL_PATH = os.path.join(os.path.dirname(__file__), 'wood_classifier_rf.pkl')
 
 # Cache untuk model (load sekali saja)
 _model_cache = None
@@ -391,7 +376,7 @@ def load_classifier():
     if not os.path.exists(MODEL_PATH):
         raise FileNotFoundError(
             f"Model tidak ditemukan di {MODEL_PATH}. "
-            "Silakan train model di Google Colab dan simpan file wood_classifier_rf_v1.pkl ke folder backend/processing/"
+            "Silakan train model di Google Colab dan simpan file wood_classifier_rf.pkl ke folder backend/processing/"
         )
     
     import joblib

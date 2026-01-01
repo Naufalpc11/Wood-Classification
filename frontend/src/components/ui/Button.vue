@@ -31,7 +31,7 @@ const variantClasses = {
 </script>
 
 <template>
-    <button :class="['inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border-none px-3 py-2.5 text-sm font-medium transition-all duration-150', variantClasses, props.class]" :disabled="disabled || loading">
+    <button :class="['inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border-none px-3.5 py-3 text-sm font-medium transition-all duration-150', variantClasses, props.class]" :disabled="disabled || loading">
         <LoaderCircle v-if="loading" class="h-5 w-5 animate-spin" />
         <slot />
     </button>
