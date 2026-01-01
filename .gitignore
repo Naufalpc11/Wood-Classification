@@ -28,5 +28,18 @@ Thumbs.db
 # Project specific
 backend/uploads/
 backend/processed/
+
+# Datasets (download separately)
 dataset/
+dataset_new/
 Bounding Boxes*/
+
+# Model files (train in Colab, copy to backend/processing/)
+*.pkl
+
+# Documentation & scripts (local only)
+Brief Tubes PCD Gasal 25 26.pdf
+Brief Tubes PCD.md
+Contoh Klasifikasi Citra.py
+Google Colab PCD.py
+ML_Classification_Colab.py

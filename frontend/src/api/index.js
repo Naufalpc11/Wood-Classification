@@ -58,9 +58,22 @@ export async function healthCheck() {
     }
 }
 
+// Demo mode - proses gambar sample dengan pipeline PCD
+export async function getDemoResults() {
+    const response = await fetch(`${API_BASE_URL}/demo`);
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Demo processing failed");
+    }
+
+    return response.json();
+}
+
 export default {
     uploadImage,
     processImage,
     getResults,
     healthCheck,
+    getDemoResults,
 };

@@ -2,29 +2,35 @@
 
 Tugas Besar Mata Kuliah Pengolahan Citra Digital - Kelompok 3A
 
-Sistem untuk mendeteksi dan menganalisis cacat mata kayu (wood knots) pada gambar kayu menggunakan teknik pengolahan citra digital.
+Sistem untuk mendeteksi cacat kayu menggunakan **Machine Learning (Random Forest)** dengan teknik pengolahan citra digital. Mengklasifikasikan gambar kayu menjadi **Cacat** atau **Tidak Cacat**.
+
+## Fitur Utama
+
+- 🖼️ Upload gambar kayu (drag & drop atau klik)
+- 🔬 Visualisasi pipeline preprocessing (7 tahap)
+- 🤖 Klasifikasi ML: **Cacat / Tidak Cacat** dengan confidence score
+- 📊 Ekstraksi fitur shape (num_knots, area, circularity, aspect_ratio)
 
 ## Struktur Project
 
 ```
 tubes-pcd/
-├── backend/                   # Flask API
-│   ├── app.py
+├── backend/                      # Flask API
+│   ├── app.py                    # Endpoints
 │   ├── requirements.txt
-│   └── processing/            # Modul pengolahan citra
+│   └── processing/
+│       ├── __init__.py           # Image processing & ML
+│       └── wood_classifier_rf_v1.pkl  # Trained model
 │
-└─── frontend/                 # Vue 3 + Tailwind CSS
-      └── src/
-          ├── components/      # Komponen UI
-          ├── pages/           # Halaman
-          └── assets/          # CSS & assets
-
-
+└── frontend/                     # Vue 3 + Tailwind CSS
+    └── src/
+        ├── components/           # UI components
+        └── pages/                # Pages
 ```
 
 ## Cara Menjalankan
 
-### Backend
+### 1. Backend
 
 ```bash
 cd backend
@@ -34,7 +40,7 @@ python app.py
 
 Server berjalan di `http://localhost:5000`
 
-### Frontend
+### 2. Frontend
 
 ```bash
 cd frontend
@@ -44,26 +50,45 @@ npm run dev
 
 Buka `http://localhost:5173`
 
-## Fitur
+### 3. Model ML (Opsional - jika ingin re-train)
 
-- Upload gambar kayu (drag & drop atau klik)
-- Visualisasi pipeline preprocessing (6 tahap)
-- Deteksi wood knots dengan bounding box
-- Ekstraksi fitur GLCM dan tekstur
-- Analisis komparatif teknik-teknik yang digunakan
+1. Buka `ML_Classification_Colab.py` di Google Colab
+2. Sesuaikan path dataset
+3. Jalankan training
+4. Export model ke `backend/processing/wood_classifier_rf_v1.pkl`
+
+## Pipeline Preprocessing
+
+| Step | Teknik             | Deskripsi             |
+| ---- | ------------------ | --------------------- |
+| 1    | Image Resizing     | Resize ke max 512px   |
+| 2    | Grayscale          | Konversi ke grayscale |
+| 3    | CLAHE              | Enhance kontras lokal |
+| 4    | Gaussian Blur      | Reduksi noise         |
+| 5    | Binary Threshold   | Segmentasi            |
+| 6    | Morphology         | Noise removal         |
+| 7    | Feature Extraction | Shape features        |
+
+## API Endpoints
+
+| Endpoint             | Method | Fungsi                      |
+| -------------------- | ------ | --------------------------- |
+| `/api/health`        | GET    | Health check                |
+| `/api/upload`        | POST   | Upload gambar               |
+| `/api/process/<id>`  | POST   | Proses & klasifikasi gambar |
+| `/api/classify/<id>` | POST   | Klasifikasi saja            |
+
+## Model ML
+
+- **Algorithm**: Random Forest
+- **Accuracy**: ~94%
+- **Features**: num_knots, total_area, avg_circularity, avg_aspect_ratio
+- **Classes**: Tidak Cacat (0), Cacat (1)
 
 ## Tech Stack
 
-**Backend:** Flask, OpenCV, NumPy, Pillow, scikit-learn
+**Backend:** Flask, OpenCV, NumPy, scikit-learn, joblib  
 **Frontend:** Vue 3, Vite, Tailwind CSS, Lucide Icons
-
-## API
-
-| Endpoint            | Method | Fungsi        |
-| ------------------- | ------ | ------------- |
-| `/api/health`       | GET    | Health check  |
-| `/api/upload`       | POST   | Upload gambar |
-| `/api/process/<id>` | POST   | Proses gambar |
 
 ## Tim
 
@@ -75,5 +100,5 @@ Kelompok 3A PCD - Informatika ITK
 - Naufal Tiarana Putra (11231071)
 - Rahmi Syafitri (11231085)
 
-Dosen Pengampu: Rizky Amelia, S.Si., M.Han.
+Dosen Pengampu: Rizky Amelia, S.Si., M.Han.  
 Asisten Matkul: Ahmad Maulana Rismadin, S.Kom.
