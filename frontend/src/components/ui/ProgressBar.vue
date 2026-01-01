@@ -1,9 +1,3 @@
-<template>
-    <div :class="['bg-muted h-1 overflow-hidden rounded-full', props.class]">
-        <div class="bg-primary h-full rounded-full transition-all duration-300" :style="{ width: `${progress}%` }"></div>
-    </div>
-</template>
-
 <script setup>
 const props = defineProps({
     progress: {
@@ -17,3 +11,9 @@ const props = defineProps({
     },
 });
 </script>
+
+<template>
+    <div :class="['bg-muted h-1 overflow-hidden rounded-full', props.class]">
+        <div class="bg-primary h-full rounded-full transition-all duration-300" :style="{ width: `${progress}%` }"></div>
+    </div>
+</template>
