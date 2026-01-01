@@ -2,6 +2,13 @@
 import { ref, computed } from "vue";
 import { ImageIcon, X, CloudUpload } from "lucide-vue-next";
 
+const props = defineProps({
+    disabled: {
+        type: Boolean,
+        default: false,
+    },
+});
+
 const emit = defineEmits(["file-selected", "file-cleared"]);
 
 const fileInput = ref(null);
@@ -19,25 +26,30 @@ const fileSizeFormatted = computed(() => {
 });
 
 const uploadZoneClasses = computed(() => {
-    const base = "relative flex min-h-80 cursor-pointer items-center justify-center rounded-3xl border-2 border-dashed border-border transition-all duration-300";
+    const base = "relative flex min-h-80 items-center justify-center rounded-3xl border-2 border-dashed border-border transition-all duration-300";
 
+    if (props.disabled) {
+        return `${base} cursor-not-allowed opacity-50`;
+    }
     if (isDragging.value) {
-        return `${base} scale-[1.02] border-primary bg-primary/10`;
+        return `${base} cursor-pointer scale-[1.02] border-primary bg-primary/10`;
     }
     if (previewUrl.value) {
-        return `${base} bg-muted p-6`;
+        return `${base} cursor-pointer bg-muted p-6`;
     }
-    return `${base} hover:border-primary hover:bg-primary/5`;
+    return `${base} cursor-pointer hover:border-primary hover:bg-primary/5`;
 });
 
 function triggerFileInput() {
-    if (!previewUrl.value) {
+    if (!previewUrl.value && !props.disabled) {
         fileInput.value?.click();
     }
 }
 
 function handleDragOver() {
-    isDragging.value = true;
+    if (!props.disabled) {
+        isDragging.value = true;
+    }
 }
 
 function handleDragLeave() {
@@ -46,6 +58,7 @@ function handleDragLeave() {
 
 function handleDrop(event) {
     isDragging.value = false;
+    if (props.disabled) return;
     const files = event.dataTransfer?.files;
     if (files?.length > 0) {
         processFile(files[0]);
@@ -53,6 +66,7 @@ function handleDrop(event) {
 }
 
 function handleFileSelect(event) {
+    if (props.disabled) return;
     const files = event.target?.files;
     if (files?.length > 0) {
         processFile(files[0]);
@@ -83,6 +97,7 @@ function processFile(file) {
 }
 
 function clearImage() {
+    if (props.disabled) return;
     selectedFile.value = null;
     previewUrl.value = null;
     if (fileInput.value) {

@@ -4,6 +4,7 @@ __pycache__/
 *.pyc
 venv/
 .venv/
+.agent/
 
 # Build outputs
 dist/
@@ -41,5 +42,6 @@ Bounding Boxes*/
 Brief Tubes PCD Gasal 25 26.pdf
 Brief Tubes PCD.md
 Contoh Klasifikasi Citra.py
-Google Colab PCD.py
+tugas_besar_pcd_kelompok_3a.py
+ml.py
 ML_Classification_Colab.py
